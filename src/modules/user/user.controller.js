@@ -152,17 +152,78 @@ export const update = async (req, res, next)=>{
         return next(new ErrorClass("Email or mobile number already exists", 400, "Email or mobile number already exists"))  
     }
 
-    // set info and update
-    user.email = email
-    user.mobileNumber = mobileNumber
-    user.recoveryEmail = recoveryEmail
-    user.DOB = DOB
-    user.lastName = lastName
-    user.firstName = firstName
+    // check if email changed or not
+    if(email != user.email){
 
-    const updatedUser = await user.save()
+        // generate token of user _id
+        const token = jwt.sign(
+        { _id: user._id, email },
+        process.env.CONFIRMATION_SECRET,
+        { expiresIn: "1h" }
+        );
 
-    res.json({message: 'User updated successfully'})
+        // confirmation Link
+        const confirmationLink = `${req.protocol}://${req.headers.host}/user/confirm-email/${token}`
+
+        // send email
+        const isEmailSent = await sendEmailService({
+            to: email,
+            subject: "Welcome to job search app",
+            textMessage: "Hello, welcome to our job search app",
+            htmlMessage: `<a href="${confirmationLink}">Click here to confirm your new email</a>`,
+        });
+
+        // check if email sent
+        if (isEmailSent.rejected.length) {
+            return next(new ErrorClass("Email not sent", 400, "Email not sent"));
+        }
+
+        // set info and update
+        user.mobileNumber = mobileNumber
+        user.recoveryEmail = recoveryEmail
+        user.DOB = DOB
+        user.lastName = lastName
+        user.firstName = firstName
+
+        const updatedUser = await user.save()
+
+        res.json({message: 'User updated successfully, please check your new email to confirm it'})
+    } else {
+        // set info and update
+        user.mobileNumber = mobileNumber
+        user.recoveryEmail = recoveryEmail
+        user.DOB = DOB
+        user.lastName = lastName
+        user.firstName = firstName
+
+        const updatedUser = await user.save()
+
+        res.json({message: 'User updated successfully'})
+    }
+}
+
+export const confirmNewEmail = async (req, res, next) => {
+    
+    // destruct token from req.params
+    const { token } = req.params;
+    
+    // verify token to get _id
+    const { _id, email } = jwt.verify(token, process.env.CONFIRMATION_SECRET)
+
+    // find and update user isConfirmed
+    const confirmedUser = await User.findOneAndUpdate(
+      { _id },
+      { email },
+      { new: true }
+    )
+
+    // check if user founded and updated
+    if (!confirmedUser) {
+      return next(new ErrorClass("User not found", 400, "User not found"))
+    }
+
+    // response
+    res.status(200).json({ message: "New email confirmed" });
 }
 
 export const remove = async (req, res, next)=>{

@@ -16,6 +16,11 @@ router.patch(
     validationMiddleware(confirmEmailSchema),
     errorHandler(userController.confirmEmail)
 )
+router.patch(
+    '/confirm-new-email/:token',
+    validationMiddleware(confirmEmailSchema),
+    errorHandler(userController.confirmNewEmail)
+)
 router.put(
     '/signin', 
     validationMiddleware(signinSchema),
