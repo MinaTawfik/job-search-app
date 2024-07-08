@@ -92,10 +92,10 @@ export const confirmEmail = async (req, res, next) => {
 export const signin = async (req, res, next)=>{
 
     // destruct email, mobileNumber and password from req.body
-    const { email, mobileNumber, password } = req.body;
+    const { email, recoveryEmail, mobileNumber, password } = req.body;
 
     // search for user email and mobileNumber
-    const logUser = await User.findOne({ $or: [ { email }, { mobileNumber } ] })
+    const logUser = await User.findOne({ $or: [ { email }, { mobileNumber }, {recoveryEmail} ] })
 
     // check if user with email or mobileNumber not founded
     if (!logUser){
@@ -329,12 +329,9 @@ export const forgetPassword = async (req, res, next)=>{
 }
 
 export const getAccounts = async (req, res, next)=>{
-
-    // get recovery email from req.body
-    const { recoveryEmail } = req.body
     
     // find users and return them
-    const foundedUsers = await User.find({ recoveryEmail }).select("-password -_id -isConfirmed -createdAt -updatedAt -__v -isLogged")
+    const foundedUsers = await User.find({ recoveryEmail:req.authUser.recoveryEmail }).select("-password -_id -isConfirmed -createdAt -updatedAt -__v -isLogged")
     return res.status(200).json(foundedUsers)
 }
 

@@ -4,7 +4,7 @@ import * as userController from './user.controller.js'
 import { errorHandler } from "../../middlewares/error-handling.middleware.js"
 import { auth } from '../../middlewares/authentication.middleware.js'
 import { validationMiddleware } from '../../middlewares/validation.middleware.js'
-import { signupSchema, confirmEmailSchema, signinSchema, getSchema, updatePasswordSchema, generateOTPSchema, forgetPasswordSchema, getAccountsSchema } from './user.schema.js'
+import { signupSchema, confirmEmailSchema, signinSchema, getSchema, updatePasswordSchema, generateOTPSchema, forgetPasswordSchema } from './user.schema.js'
 
 router.post(
     '/signup',
@@ -72,7 +72,6 @@ router.patch(
 router.get(
     '/getaccounts', 
     errorHandler(auth()),
-    validationMiddleware(getAccountsSchema),
     errorHandler(userController.getAccounts)
 )
 

@@ -30,6 +30,7 @@ export const confirmEmailSchema = {
 export const signinSchema = {
   body: Joi.object({
     email: Joi.string().email(),
+    recoveryEmail: Joi.string().email(),
     password: Joi.string().pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/).required()
     .messages({
       "string.pattern.base":
@@ -75,11 +76,5 @@ export const forgetPasswordSchema = {
       "string.min": "Password should have a minimum length of 3 characters",
     }),
     otp: Joi.string().length(6).required()
-  })
-};
-
-export const getAccountsSchema = {
-  body: Joi.object({
-    recoveryEmail: Joi.string().email().required(),
   })
 };
