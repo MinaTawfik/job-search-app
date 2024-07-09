@@ -257,7 +257,7 @@ export const updatePassword = async (req, res, next)=>{
     const { password } = req.body
 
     // encrypt password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, +process.env.SALT_ROUNDS)
 
     // set info and update
     user.password = hashedPassword
@@ -305,7 +305,7 @@ export const forgetPassword = async (req, res, next)=>{
     const { otp, password } = req.body
 
     // encrypt password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, +process.env.SALT_ROUNDS)
 
     // check if the otp is valid
     const getDataOfOTP = await OTP.findOne({ otp })
