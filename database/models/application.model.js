@@ -23,4 +23,11 @@ const applicationSchema = new Schema({
 }, {timestamps: true})
 
 
+// to remove hours details from createdAt
+applicationSchema.pre('save', function(next) {
+    this.createdAt = new Date(this.createdAt.toISOString().split('T')[0]);
+    next();
+});
+
+
 export default mongoose.models.Application || model("Application", applicationSchema)

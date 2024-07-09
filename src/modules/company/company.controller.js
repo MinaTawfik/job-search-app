@@ -2,6 +2,7 @@ import Company from '../../../database/models/company.model.js'
 import { ErrorClass } from '../../utils/error-class.utils.js'
 import Job from '../../../database/models/job.model.js'
 import Application from '../../../database/models/application.model.js'
+import ExcelJS from 'exceljs'
 
 
 export const add = async (req, res, next)=>{
@@ -145,4 +146,78 @@ export const getAllApp = async (req, res, next)=>{
     }
 
     return res.status(200).json(apps)
+}
+
+export const getExcel = async (req, res, next)=>{
+
+    // get data
+    const _id = req.params.companyid
+    const {createdAt} = req.body
+
+    // build date as DB
+    const date = `${createdAt}T00:00:00.000+00:00`
+
+
+    // get company
+    const company = await Company.findById({ _id })
+    if (!company){
+        return next(new ErrorClass("Company not found", 400, "Company not found"))  
+    }
+    
+    // find jobs by HR id
+    const jobs = await Job.find({ addedBy:company.companyHR }).select("-createdAt -updatedAt -__v")
+    if (!jobs){
+        return next(new ErrorClass("Jobs not found", 400, "Jobs not found"))  
+    }
+
+    // create array of jobs ids
+    let jobsIds = []
+
+    // store jobs ids to array
+    for (let job in jobs){
+        jobsIds.push(jobs[job]._id)
+    }
+
+    // create array of jobs applications
+    let apps = []
+
+    // find apps and store in array
+    for (let id in jobsIds){
+        const foundedApplications = await Application.find({ $and: [ { jobId:jobsIds[id] }, { createdAt:date } ] }).select("-__v -_id -userResume -createdAt -updatedAt")
+        .populate([
+            {path:"jobId", select: "jobTitle -_id"},
+            {path:"userId", select: "username -_id"}
+        ])
+        if(foundedApplications.length!=0){
+            apps.push(foundedApplications)
+        }
+    }
+
+    // build excel sheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Applications');
+
+    worksheet.columns = [
+      { header: 'Job Name', key: 'jobId', width: 30 },
+      { header: 'User Name', key: 'userId', width: 20 },
+      { header: 'User Tech Skills', key: 'userTechSkills', width: 30 },
+      { header: 'User Soft Skills', key: 'userSoftSkills', width: 30 },
+      // Add other headers as needed
+    ];
+
+    for(let app in apps){
+        apps[app].forEach((application) => {
+            worksheet.addRow(application);
+          });
+    }
+    res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=applications.xlsx`
+    );
+  
+    await workbook.xlsx.write(res);
 }

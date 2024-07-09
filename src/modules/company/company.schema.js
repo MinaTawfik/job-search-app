@@ -23,3 +23,12 @@ export const searchSchema = {
     companyname: Joi.string().required()
   })
 };
+
+export const excelSchema = {
+  body: Joi.object({
+    createdAt: Joi.date().required()
+  }),
+  params: Joi.object({
+    companyid: Joi.string().required()
+  })
+};

@@ -6,7 +6,7 @@ import { auth } from '../../middlewares/authentication.middleware.js'
 import { roles, systemRoles } from "../../utils/system-roles.utils.js"
 import { authorizationMiddleware } from '../../middlewares/authorization.middleware.js'
 import { validationMiddleware } from '../../middlewares/validation.middleware.js'
-import { addSchema, getSchema, searchSchema } from './company.schema.js'
+import { addSchema, getSchema, searchSchema, excelSchema } from './company.schema.js'
 
 
 router.post(
@@ -53,6 +53,14 @@ router.get(
     errorHandler(auth()),
     errorHandler(authorizationMiddleware(systemRoles.COMPANY_HR)), 
     errorHandler(companyController.getAllApp)
+)
+
+router.get(
+    '/getexcel/:companyid',
+    errorHandler(auth()),
+    errorHandler(authorizationMiddleware(systemRoles.COMPANY_HR)),
+    validationMiddleware(excelSchema),
+    errorHandler(companyController.getExcel)
 )
 
 

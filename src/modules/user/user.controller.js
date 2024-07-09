@@ -15,7 +15,7 @@ export const signup = async (req, res, next)=>{
     const { firstName, lastName, email, password, recoveryEmail, DOB, mobileNumber, role } = req.body
 
     // encrypt password
-    const hashedPassword = await bcrypt.hash(password, process.env.SALT_ROUNDS)
+    const hashedPassword = await bcrypt.hash(password, +process.env.SALT_ROUNDS)
 
     // check if the email or mobile number is already exists
     const isUserExist = await User.findOne({ $or: [ { email }, { mobileNumber } ] })
